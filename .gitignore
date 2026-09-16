@@ -1,0 +1,18 @@
+# Rahasia dan konfigurasi lokal
+backend/start.env
+.env
+.env.*
+!.env.example
+
+# File log dan file sementara
+*.log
+*.tmp
+*.temp
+
+# Konfigurasi lokal VS Code
+.vscode/*
+!.vscode/launch.json
+
+# Cache dan file sistem
+.DS_Store
+Thumbs.db

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Old Token - Kasir System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e74c3c;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #c0392b;
+        }
+        .button.secondary {
+            background: #3498db;
+        }
+        .button.secondary:hover {
+            background: #2980b9;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Clear Old Token</h1>
+        
+        <div class="warning">
+            <strong>⚠️ PERHATIAN:</strong> Token lama (format base64 simple) tidak kompatibel dengan sistem baru (JWT). 
+            Halaman ini akan membersihkan token lama dan memaksa Anda login ulang dengan token baru.
+        </div>
+
+        <div class="info">
+            <h3>Masalah yang Akan Diperbaiki:</h3>
+            <ul>
+                <li>❌ Auto logout setelah refresh</li>
+                <li>❌ Error: "Failed to execute 'atob'"</li>
+                <li>❌ Token validation error</li>
+                <li>❌ Invalid character error</li>
+            </ul>
+        </div>
+
+        <div class="status" id="tokenStatus">
+            <h3>Status Token Saat Ini:</h3>
+            <div id="currentStatus">Checking...</div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="clearOldToken()">
+                🗑️ Clear Old Token & Force Logout
+            </button>
+            <button class="button secondary" onclick="checkToken()">
+                🔍 Check Token Format
+            </button>
+        </div>
+
+        <div class="success" id="successMessage">
+            <strong>✅ SUCCESS!</strong> Token lama berhasil dihapus. 
+            <br><br>
+            <strong>Next Step:</strong>
+            <ol>
+                <li>Close all browser tabs</li>
+                <li>Open new tab</li>
+                <li>Go to: <a href="index.html">index.html</a></li>
+                <li>Login with new credentials</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>📝 Technical Details:</h3>
+            <p><strong>Old Token Format (Incompatible):</strong></p>
+            <pre>eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIn0=
+(Single base64 string, 1 part)</pre>
+            
+            <p><strong>New Token Format (JWT Proper):</strong></p>
+            <pre>eyJhbGci...Header
+.
+eyJ1c2Vy...Payload
+.
+dBjftJeZ...Signature
+(Three parts separated by dots)</pre>
+        </div>
+
+        <div class="info">
+            <h3>🔐 What This Does:</h3>
+            <ul>
+                <li>Removes <code>token</code> from localStorage</li>
+                <li>Removes <code>userRole</code> from localStorage</li>
+                <li>Removes <code>username</code> from localStorage</li>
+                <li>Clears all session data</li>
+                <li>Forces fresh login with new JWT token</li>
+            </ul>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <h3>Manual Method (If button doesn't work):</h3>
+        <p>Open Browser Console (F12) and run:</p>
+        <pre>localStorage.clear();
+console.log('✅ All storage cleared');
+location.reload();</pre>
+    </div>
+
+    <script>
+        // Check token format on load
+        window.onload = function() {
+            checkToken();
+        };
+
+        function checkToken() {
+            const token = localStorage.getItem('token');
+            const statusDiv = document.getElementById('currentStatus');
+            
+            if (!token) {
+                statusDiv.innerHTML = `
+                    <p style="color: #28a745;">✅ <strong>No token found</strong></p>
+                    <p>You're ready to login with new JWT token.</p>
+                `;
+                return;
+            }
+
+            const parts = token.split('.');
+            
+            statusDiv.innerHTML = `
+                <p><strong>Token exists:</strong> Yes</p>
+                <p><strong>Token length:</strong> ${token.length} characters</p>
+                <p><strong>Number of parts:</strong> ${parts.length}</p>
+            `;
+
+            if (parts.length === 3) {
+                // Might be JWT
+                try {
+                    const payload = JSON.parse(atob(parts[1]));
+                    const exp = new Date(payload.exp * 1000);
+                    const now = new Date();
+                    const isExpired = exp < now;
+                    
+                    statusDiv.innerHTML += `
+                        <p style="color: #28a745;">✅ <strong>Format: JWT Proper (3 parts)</strong></p>
+                        <p><strong>User:</strong> ${payload.username || 'Unknown'}</p>
+                        <p><strong>Role:</strong> ${payload.role || 'Unknown'}</p>
+                        <p><strong>Expires:</strong> ${exp.toLocaleString('id-ID')}</p>
+                        <p><strong>Status:</strong> ${isExpired ? '❌ EXPIRED' : '✅ Valid'}</p>
+                    `;
+                    
+                    if (isExpired) {
+                        statusDiv.innerHTML += `<p style="color: #e74c3c; font-weight: bold;">⚠️ Token expired! Clear and login again.</p>`;
+                    }
+                } catch (e) {
+                    statusDiv.innerHTML += `
+                        <p style="color: #e74c3c;">❌ <strong>Format: Invalid JWT</strong></p>
+                        <p>Error decoding: ${e.message}</p>
+                        <p style="font-weight: bold;">⚠️ Need to clear and login again!</p>
+                    `;
+                }
+            } else {
+                // Old format
+                statusDiv.innerHTML += `
+                    <p style="color: #e74c3c;">❌ <strong>Format: Old Token (${parts.length} part${parts.length > 1 ? 's' : ''})</strong></p>
+                    <p style="font-weight: bold;">⚠️ This is incompatible! Click "Clear Old Token" button below.</p>
+                `;
+            }
+        }
+
+        function clearOldToken() {
+            if (!confirm('Are you sure? This will logout you and clear all session data.')) {
+                return;
+            }
+
+            console.log('Clearing old token...');
+            
+            // Clear all localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            
+            console.log('✅ Token cleared');
+            console.log('✅ UserRole cleared');
+            console.log('✅ Username cleared');
+            
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Update status
+            checkToken();
+            
+            // Auto redirect after 3 seconds
+            setTimeout(() => {
+                if (confirm('Redirect to login page now?')) {
+                    window.location.href = 'index.html';
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

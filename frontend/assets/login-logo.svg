@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Kasir logo</title>
+  <desc id="desc">Angular monochrome emblem</desc>
+  <g fill="none" stroke="#00f0ff" stroke-width="7" stroke-linejoin="round">
+    <path d="M256 42 224 188 256 224 288 188 256 42Z"/>
+    <path d="m224 188-108 112 140-54-48-58 48 34 48-34-48 58 140 54-108-112"/>
+    <path d="M224 188 164 112l92 112 92-112-60 76"/>
+    <path d="m148 300 108 142 108-142-108 54-108-54Z"/>
+    <path d="M256 224v218M224 188l-8 154 40 100 40-100-8-154"/>
+    <path d="m116 300 74 2-42 36M396 300l-74 2 42 36"/>
+    <path d="m164 112 60 76M348 112l-60 76"/>
+  </g>
+</svg>
